@@ -1,0 +1,51 @@
+{
+  "name": "mantine-minimal-next-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "yarn prisma:generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "supabase:generate": "supabase gen types typescript --local > supabase/types.ts"
+  },
+  "dependencies": {
+    "@mantine/core": "7.17.0",
+    "@mantine/form": "^7.17.0",
+    "@mantine/hooks": "7.17.0",
+    "@mantine/notifications": "^7.17.1",
+    "@prisma/client": "6.4.1",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
+    "@tabler/icons-react": "^3.30.0",
+    "@tanstack/react-query": "^5.67.1",
+    "@tanstack/react-query-devtools": "^5.67.1",
+    "dotenv": "^16.4.7",
+    "humanize-duration": "^3.32.1",
+    "next": "15.1.5",
+    "nextjs-toploader": "^3.7.15",
+    "postgres": "^3.4.5",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.5.1",
+    "@ngneat/falso": "^7.3.0",
+    "@types/humanize-duration": "^3",
+    "@types/node": "22.10.7",
+    "@types/react": "19.0.7",
+    "@types/react-dom": "19.0.3",
+    "date-fns": "^4.1.0",
+    "eslint": "9.18.0",
+    "eslint-config-next": "15.1.5",
+    "postcss": "^8.5.1",
+    "postcss-preset-mantine": "1.17.0",
+    "postcss-simple-vars": "^7.0.1",
+    "prisma": "^6.4.1",
+    "tsx": "^4.19.3",
+    "typescript": "5.7.3"
+  },
+  "packageManager": "yarn@4.6.0+sha512.5383cc12567a95f1d668fbe762dfe0075c595b4bfff433be478dbbe24e05251a8e8c3eb992a986667c1d53b6c3a9c85b8398c35a960587fbd9fa3a0915406728"
+}

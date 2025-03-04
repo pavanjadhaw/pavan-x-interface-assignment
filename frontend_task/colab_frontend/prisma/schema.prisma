@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id                 String             @id @unique
+  email              String             @unique
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId     String
+  documentActivities DocumentActivity[] @relation("DocumentActivityActor")
+  revisionActivities RevisionActivity[] @relation("RevisionActivityActor")
+  authoredDocuments  Document[]         @relation("DocumentAuthor")
+  authoredRevisions  Revision[]         @relation("RevisionAuthor")
+  createdAt          DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(6)
+
+  @@index([organizationId])
+}
+
+model Organization {
+  id   String @id @default(uuid())
+  name String
+  slug String @unique
+
+  users     Profile[]
+  documents Document[]
+
+  createdAt        DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @db.Timestamptz(6)
+  DocumentActivity DocumentActivity[]
+}
+
+model Document {
+  id             String             @id @default(uuid())
+  title          String
+  content        String             @db.Text
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  authorId       String
+  author         Profile            @relation("DocumentAuthor", fields: [authorId], references: [id])
+  createdAt      DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?          @db.Timestamptz(6)
+  revisions      Revision[]
+  activities     DocumentActivity[]
+
+  @@index([organizationId])
+}
+
+enum RevisionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Revision {
+  id         String             @id @default(uuid())
+  documentId String
+  document   Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  content    String             @db.Text
+  status     RevisionStatus     @default(PENDING)
+  authorId   String
+  author     Profile            @relation("RevisionAuthor", fields: [authorId], references: [id])
+  createdAt  DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime           @updatedAt @db.Timestamptz(6)
+  activities RevisionActivity[]
+
+  @@index([documentId])
+}
+
+enum DocumentActionType {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+model DocumentActivity {
+  id             String             @id @default(uuid())
+  documentId     String
+  document       Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  actorId        String
+  actor          Profile            @relation("DocumentActivityActor", fields: [actorId], references: [id])
+  actionType     DocumentActionType
+  organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  details        Json               @default("{}")
+  createdAt      DateTime           @default(now()) @db.Timestamptz(6)
+
+  @@index([documentId])
+  @@index([actorId])
+  @@index([actionType])
+  @@index([organizationId])
+}
+
+enum RevisionActionType {
+  CREATED
+  ACCEPTED
+  REJECTED
+}
+
+model RevisionActivity {
+  id         String             @id @default(uuid())
+  revisionId String
+  revision   Revision           @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  actorId    String
+  actor      Profile            @relation("RevisionActivityActor", fields: [actorId], references: [id])
+  actionType RevisionActionType
+  createdAt  DateTime           @default(now()) @db.Timestamptz(6)
+
+  @@index([revisionId])
+  @@index([actorId])
+  @@index([actionType])
+}
