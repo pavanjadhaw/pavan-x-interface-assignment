@@ -174,7 +174,7 @@ export default function AuthenticationForm({ type }: AuthFormProps) {
                     : "Welcome back! Pick a demo account to get started."}
                 </Text>
 
-                {type === "login" && demoAccounts.length > 0 ? (
+                {type === "login" ? (
                   <>
                     <Select
                       placeholder="Select user from organizations"
