@@ -216,7 +216,7 @@ export default function AuthenticationForm({ type }: AuthFormProps) {
                     <TextInput
                       required
                       label="Email"
-                      placeholder="hello@mantine.dev"
+                      placeholder="youremail@example.com"
                       value={form.values.email}
                       onChange={(event) =>
                         form.setFieldValue("email", event.currentTarget.value)
