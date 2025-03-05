@@ -115,13 +115,12 @@ export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
 
               await updateDocument(updatedDocument);
 
+              close();
               notifications.show({
                 title: "Document updated",
                 message: "Document updated successfully",
                 color: "green",
               });
-
-              close();
 
               await createActivity([updatedDocumentActivity]);
             }

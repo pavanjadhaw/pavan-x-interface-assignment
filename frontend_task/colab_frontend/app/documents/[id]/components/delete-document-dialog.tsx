@@ -31,6 +31,7 @@ import { useSupabaseClient } from "@/utils/supabase/client";
 import { TablesInsert, TablesUpdate } from "@/utils/supabase/types";
 import { getUser } from "@/hooks/use-user";
 import { useCreateActivity } from "@/mutations/useCreateActivity";
+import { notifications } from "@mantine/notifications";
 
 interface DeleteDocumentDialogProps {
   documentId: string;
@@ -124,6 +125,14 @@ export const DeleteDocumentDialog = ({
                 };
 
               await updateDocument(updatedDocument);
+
+              close();
+              notifications.show({
+                title: "Document deleted",
+                message: "Document deleted successfully",
+                color: "green",
+              });
+
               await createActivity([updatedDocumentActivity]);
 
               router.push("/documents");

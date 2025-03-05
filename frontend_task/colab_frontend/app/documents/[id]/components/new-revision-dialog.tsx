@@ -125,7 +125,6 @@ export function NewRevisionDialog({ document }: NewRevisionDialogProps) {
             await createRevision([newRevision]);
 
             close();
-
             notifications.show({
               title: "Revision created",
               message: "Revision created successfully",
