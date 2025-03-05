@@ -4,14 +4,11 @@ import {
   Box,
   Button,
   Center,
-  Checkbox,
-  CheckIcon,
   ComboboxItem,
   Container,
   Divider,
   Group,
   Paper,
-  PaperProps,
   PasswordInput,
   Select,
   Stack,
@@ -41,7 +38,9 @@ export default function AuthenticationForm({ type }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
 
   const supabase = useSupabaseClient();
-  const { data: organizations } = useSupabaseQuery(getDemoAccounts(supabase));
+  const { data: organizations, isLoading } = useSupabaseQuery(
+    getDemoAccounts(supabase)
+  );
 
   const form = useForm({
     initialValues: {
@@ -177,7 +176,12 @@ export default function AuthenticationForm({ type }: AuthFormProps) {
                 {type === "login" ? (
                   <>
                     <Select
-                      placeholder="Select user from organizations"
+                      disabled={demoAccounts.length === 0}
+                      placeholder={
+                        isLoading
+                          ? "Loading demo accounts"
+                          : "Select user from organizations"
+                      }
                       data={demoAccounts}
                       value={demoAccount ? demoAccount.value : null}
                       onChange={(_value, option) => setDemoAccount(option)}
