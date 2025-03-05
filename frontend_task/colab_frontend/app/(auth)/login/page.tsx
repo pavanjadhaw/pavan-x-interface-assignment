@@ -4,6 +4,7 @@ import getQueryClient from "@/utils/get-query-client";
 import { getSupabaseServerClient } from "@/utils/supabase/server";
 import { prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getDemoAccounts } from "@/queries/get-demo-accounts";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export default async function LoginPage() {
   const queryClient = getQueryClient();
@@ -11,5 +12,9 @@ export default async function LoginPage() {
 
   await prefetchQuery(queryClient, getDemoAccounts(supabase));
 
-  return <AuthForm type="login" />;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AuthForm type="login" />
+    </HydrationBoundary>
+  );
 }
