@@ -20,6 +20,7 @@ import { useSupabaseClient } from "@/utils/supabase/client";
 import { useUpdateMutation } from "@supabase-cache-helpers/postgrest-react-query";
 import { TablesUpdate } from "@/supabase/types";
 import { notifications } from "@mantine/notifications";
+import { useState } from "react";
 
 interface RevisionCardProps {
   revision: InferArrayElement<GetDocumentRevisionsResponse>;
@@ -27,8 +28,10 @@ interface RevisionCardProps {
 
 export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
   const { data: user } = getUser();
-  const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
+  const [currentStatus, setCurrentStatus] = useState<RevisionStatus | null>(
+    null
+  );
 
   const { mutateAsync: updateRevision, isPending } = useUpdateMutation(
     supabase.from("Revision"),
@@ -61,6 +64,8 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
       return;
     }
 
+    setCurrentStatus(status);
+
     const revisionUpdates: TablesUpdate<"Revision"> = {
       id: revision.id,
       status,
@@ -81,6 +86,8 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
         color: "red",
       });
     }
+
+    setCurrentStatus(null);
   };
 
   return (
@@ -116,6 +123,7 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
                 color="gray"
                 onClick={() => revisionStatusHandler(RevisionStatus.ACCEPTED)}
                 disabled={isPending}
+                loading={isPending && currentStatus === RevisionStatus.ACCEPTED}
               >
                 <IconCheck size={20} />
               </ActionIcon>
@@ -126,7 +134,9 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
                 aria-label="Reject"
                 color="gray"
                 onClick={() => revisionStatusHandler(RevisionStatus.REJECTED)}
-                disabled={isPending}
+                disabled={
+                  isPending && currentStatus === RevisionStatus.REJECTED
+                }
               >
                 <IconX size={20} />
               </ActionIcon>
