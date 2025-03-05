@@ -13,6 +13,7 @@ import {
 import { getInitialsFromEmail } from "@/utils/utils";
 import { getUser } from "@/hooks/use-user";
 import { Avataar } from "./avataar";
+import { logout } from "@/app/(auth)/auth.actions";
 
 interface UserButtonProps extends React.ComponentPropsWithoutRef<"button"> {
   email: string;
@@ -93,11 +94,7 @@ export default function ProfileDropdown() {
         />
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Item
-          leftSection={<IconLogout size={14} />}
-          // @TODO: implement logout
-          // onClick={logout}
-        >
+        <Menu.Item leftSection={<IconLogout size={14} />} onClick={logout}>
           Logout
         </Menu.Item>
       </Menu.Dropdown>
