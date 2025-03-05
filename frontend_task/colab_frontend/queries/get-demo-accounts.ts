@@ -1,10 +1,8 @@
 import { TypedSupabaseClient } from "@/utils/supabase/types";
 
 export const getDemoAccounts = (client: TypedSupabaseClient) => {
-  return client
-    .from("Organization")
-    .select(
-      `
+  return client.from("Organization").select(
+    `
       id,
       name,
       slug,
@@ -13,8 +11,7 @@ export const getDemoAccounts = (client: TypedSupabaseClient) => {
         email
       )
     `
-    )
-    .limit(2);
+  );
 };
 
 export type GetDemoAccountsResponse = Awaited<

@@ -67,10 +67,13 @@ export default function AuthenticationForm({ type }: AuthFormProps) {
   });
 
   const demoAccounts =
-    organizations?.map((org) => ({
-      group: org.name,
-      items: org.users.map((user) => user.email),
-    })) || [];
+    organizations
+      ?.filter((org) => org.users.length > 1)
+      .slice(0, 2)
+      .map((org) => ({
+        group: org.name,
+        items: org.users.map((user) => user.email),
+      })) || [];
 
   useEffect(() => {
     if (demoAccount) {
@@ -171,7 +174,7 @@ export default function AuthenticationForm({ type }: AuthFormProps) {
                     : "Welcome back! Pick a demo account to get started."}
                 </Text>
 
-                {type === "login" ? (
+                {type === "login" && demoAccounts.length > 0 ? (
                   <>
                     <Select
                       placeholder="Select user from organizations"

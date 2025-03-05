@@ -7,14 +7,14 @@ import { getDemoAccounts } from "@/queries/get-demo-accounts";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export default async function LoginPage() {
-  const queryClient = getQueryClient();
-  const supabase = await getSupabaseServerClient();
+  // const queryClient = getQueryClient();
+  // const supabase = await getSupabaseServerClient();
 
-  await prefetchQuery(queryClient, getDemoAccounts(supabase));
+  // await prefetchQuery(queryClient, getDemoAccounts(supabase));
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <AuthForm type="login" />
-    </HydrationBoundary>
+    // <HydrationBoundary state={dehydrate(queryClient)}>
+    <AuthForm type="login" />
+    // </HydrationBoundary>
   );
 }
