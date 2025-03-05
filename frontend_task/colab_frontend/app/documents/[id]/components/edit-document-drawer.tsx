@@ -34,7 +34,7 @@ export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
   const supabase = useSupabaseClient();
 
   const { mutateAsync: createActivity } = useCreateActivity(supabase);
-  const { mutateAsync: updateDocument } = useUpdateMutation(
+  const { mutateAsync: updateDocument, isPending } = useUpdateMutation(
     supabase.from("Document"),
     ["id"],
     `
@@ -114,16 +114,17 @@ export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
                 };
 
               await updateDocument(updatedDocument);
-              await createActivity([updatedDocumentActivity]);
 
               notifications.show({
                 title: "Document updated",
                 message: "Document updated successfully",
                 color: "green",
               });
-            }
 
-            close();
+              close();
+
+              await createActivity([updatedDocumentActivity]);
+            }
           })}
         >
           <Stack>
@@ -154,7 +155,12 @@ export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
             />
 
             <Flex justify="flex-end">
-              <Button type="submit" radius="xl">
+              <Button
+                type="submit"
+                radius="xl"
+                disabled={isPending}
+                loading={isPending}
+              >
                 Update
               </Button>
             </Flex>

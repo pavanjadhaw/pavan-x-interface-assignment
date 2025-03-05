@@ -30,7 +30,7 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
 
-  const { mutateAsync: updateRevision } = useUpdateMutation(
+  const { mutateAsync: updateRevision, isPending } = useUpdateMutation(
     supabase.from("Revision"),
     ["id"],
     `
@@ -115,6 +115,7 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
                 aria-label="Accept"
                 color="gray"
                 onClick={() => revisionStatusHandler(RevisionStatus.ACCEPTED)}
+                loading={isPending}
               >
                 <IconCheck size={20} />
               </ActionIcon>
@@ -125,6 +126,7 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
                 aria-label="Reject"
                 color="gray"
                 onClick={() => revisionStatusHandler(RevisionStatus.REJECTED)}
+                loading={isPending}
               >
                 <IconX size={20} />
               </ActionIcon>

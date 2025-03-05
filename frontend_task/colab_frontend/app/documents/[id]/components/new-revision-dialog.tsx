@@ -39,7 +39,7 @@ export function NewRevisionDialog({ document }: NewRevisionDialogProps) {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
 
-  const { mutateAsync } = useInsertMutation(
+  const { mutateAsync: createRevision, isPending } = useInsertMutation(
     supabase.from("Revision"),
     ["id"],
     `
@@ -122,7 +122,9 @@ export function NewRevisionDialog({ document }: NewRevisionDialogProps) {
               documentId: document.id,
             };
 
-            await mutateAsync([newRevision]);
+            await createRevision([newRevision]);
+
+            close();
 
             notifications.show({
               title: "Revision created",
@@ -130,7 +132,6 @@ export function NewRevisionDialog({ document }: NewRevisionDialogProps) {
               color: "green",
             });
 
-            close();
             form.reset();
           })}
         >
@@ -149,7 +150,12 @@ export function NewRevisionDialog({ document }: NewRevisionDialogProps) {
               minRows={2}
             />
             <Flex justify="flex-end">
-              <Button type="submit" size="xs">
+              <Button
+                type="submit"
+                size="xs"
+                disabled={isPending}
+                loading={isPending}
+              >
                 Create
               </Button>
             </Flex>

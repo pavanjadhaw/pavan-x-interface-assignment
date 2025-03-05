@@ -46,7 +46,7 @@ export const DeleteDocumentDialog = ({
   const [opened, { open, close }] = useDisclosure(false);
 
   const { mutateAsync: createActivity } = useCreateActivity(supabase);
-  const { mutateAsync: updateDocument } = useUpdateMutation(
+  const { mutateAsync: updateDocument, isPending } = useUpdateMutation(
     supabase.from("Document"),
     ["id"],
     `
@@ -133,6 +133,8 @@ export const DeleteDocumentDialog = ({
               backgroundColor: "var(--mantine-color-red-6)",
               color: "var(--mantine-color-red-0)",
             }}
+            disabled={isPending}
+            loading={isPending}
           >
             Confirm
           </Button>

@@ -27,7 +27,7 @@ export function NewDocumentDrawer() {
   const supabase = useSupabaseClient();
 
   const { mutateAsync: createActivity } = useCreateActivity(supabase);
-  const { mutateAsync: createDocument } = useInsertMutation(
+  const { mutateAsync: createDocument, isPending } = useInsertMutation(
     supabase.from("Document"),
     ["id"],
     `
@@ -103,7 +103,9 @@ export function NewDocumentDrawer() {
             };
 
             await createDocument([newDocument]);
-            await createActivity([newDocumentActivity]);
+
+            close();
+            form.reset();
 
             notifications.show({
               title: newDocument.title,
@@ -112,8 +114,7 @@ export function NewDocumentDrawer() {
               icon: <IconCheck size="1.1rem" />,
             });
 
-            close();
-            form.reset();
+            await createActivity([newDocumentActivity]);
           })}
         >
           <Stack>
@@ -142,11 +143,13 @@ export function NewDocumentDrawer() {
                   close();
                   form.reset();
                 }}
-                // disabled={loading}
+                disabled={isPending}
               >
                 Cancel
               </Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" loading={isPending}>
+                Create
+              </Button>
             </Group>
           </Stack>
         </form>
