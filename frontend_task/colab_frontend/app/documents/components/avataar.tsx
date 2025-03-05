@@ -5,7 +5,7 @@ interface AvataarProps extends AvatarProps {
   email: string;
 }
 
-export const Avataar = ({ email, size = "md" }: AvataarProps) => {
+export const Avataar = ({ email, size = "sm" }: AvataarProps) => {
   const initials = getInitialsFromEmail(email);
 
   return (
@@ -13,8 +13,8 @@ export const Avataar = ({ email, size = "md" }: AvataarProps) => {
       size={size}
       radius="xl"
       color="initials"
+      variant="filled"
       name={initials}
-      allowedInitialsColors={["blue", "grape", "red", "green", "teal"]}
     >
       {initials}
     </Avatar>
