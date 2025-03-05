@@ -115,7 +115,7 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
                 aria-label="Accept"
                 color="gray"
                 onClick={() => revisionStatusHandler(RevisionStatus.ACCEPTED)}
-                loading={isPending}
+                disabled={isPending}
               >
                 <IconCheck size={20} />
               </ActionIcon>
@@ -126,7 +126,7 @@ export const RevisionCard: React.FC<RevisionCardProps> = ({ revision }) => {
                 aria-label="Reject"
                 color="gray"
                 onClick={() => revisionStatusHandler(RevisionStatus.REJECTED)}
-                loading={isPending}
+                disabled={isPending}
               >
                 <IconX size={20} />
               </ActionIcon>
