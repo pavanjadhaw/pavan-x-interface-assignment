@@ -25,6 +25,7 @@ export const RevisionHistoryDrawer = ({
           withBorder
           processing
           disabled={!showIndicator}
+          visibleFrom="sm"
         >
           <ActionIcon
             variant="default"
@@ -33,7 +34,6 @@ export const RevisionHistoryDrawer = ({
               onToggle?.();
               open();
             }}
-            visibleFrom="sm"
           >
             <IconHistory style={{ width: "70%", height: "70%" }} stroke={1.5} />
           </ActionIcon>

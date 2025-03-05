@@ -4,7 +4,7 @@ import { getDocumentActivity } from "@/queries/get-document-activity";
 import { getDocumentRevisions } from "@/queries/get-document-revisions";
 import { useSupabaseClient } from "@/utils/supabase/client";
 import { useSupabaseQuery } from "@/utils/supabase/supabase-query";
-import { Badge, Group, Stack, Text } from "@mantine/core";
+import { Badge, Box, Flex, Group, Stack, Text } from "@mantine/core";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Avataar } from "../components/avataar";
@@ -65,7 +65,7 @@ export default function DocumentPage() {
               </Stack>
             </Group>
           </Stack>
-          <Group mt="xs">
+          <Group gap="xs">
             <NewRevisionDialog document={data} />
             <RevisionHistoryDrawer
               showIndicator={pendingRevisionsCount > 0 && !revisionsSeen}
