@@ -3,14 +3,11 @@ import { humanizeTimeDifference } from "@/utils/time";
 import { useState, useEffect } from "react";
 import { Text, TextProps } from "@mantine/core";
 
-interface ActivityTimeProps extends TextProps {
+interface TimeAgoProps extends TextProps {
   date: Date | string;
 }
 
-export default function ActivityTime({
-  date,
-  ...textProps
-}: ActivityTimeProps) {
+export const TimeAgo = ({ date, ...textProps }: TimeAgoProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -22,8 +19,6 @@ export default function ActivityTime({
   }, []);
 
   return (
-    <Text size="xs" color="dimmed" {...textProps}>
-      {humanizeTimeDifference(date, currentTime)} ago
-    </Text>
+    <Text {...textProps}>{humanizeTimeDifference(date, currentTime)} ago</Text>
   );
-}
+};

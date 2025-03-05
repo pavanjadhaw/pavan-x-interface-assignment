@@ -12,6 +12,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime-corejs3@npm:^7.16.5":
+  version: 7.26.9
+  resolution: "@babel/runtime-corejs3@npm:7.26.9"
+  dependencies:
+    core-js-pure: "npm:^3.30.2"
+    regenerator-runtime: "npm:^0.14.0"
+  checksum: 10c0/6e453dddbdad51b446548b0b43e4767b57ff223aa14e1de01aba06eacb0d9938de88c5460a97bb14f056829b13335bafd63f56bbeda4cff5cb375c73de964aa3
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.20.13":
   version: 7.22.11
   resolution: "@babel/runtime@npm:7.22.11"
@@ -889,6 +899,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@supabase-cache-helpers/postgrest-core@npm:0.9.0":
+  version: 0.9.0
+  resolution: "@supabase-cache-helpers/postgrest-core@npm:0.9.0"
+  dependencies:
+    fast-equals: "npm:5.0.1"
+    flat: "npm:6.0.1"
+    merge-anything: "npm:5.1.7"
+    xregexp: "npm:5.1.1"
+  peerDependencies:
+    "@supabase/postgrest-js": 1.16.3
+    "@supabase/supabase-js": ^2.46.1
+  checksum: 10c0/6d0bd4395d99228cca060547b34131ffd0e6b92ee3d9a1e3fdf3b30b98133126ee4bec07b5873b5b9601fa16a2827b785c89318e53b30181a4a99363c65e7e99
+  languageName: node
+  linkType: hard
+
+"@supabase-cache-helpers/postgrest-react-query@npm:^1.11.5":
+  version: 1.11.5
+  resolution: "@supabase-cache-helpers/postgrest-react-query@npm:1.11.5"
+  dependencies:
+    "@supabase-cache-helpers/postgrest-core": "npm:0.9.0"
+    flat: "npm:6.0.1"
+  peerDependencies:
+    "@supabase/postgrest-js": ^1.16.3
+    "@tanstack/react-query": ^4.0.0 || ^5.0.0
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/6d8cf587bb3e7176f33e0625efaf5c9880917c72e480379f55f2f7943c22efaa993c2f6f7178b926f18020c5dc4fad46327e1420ed33b1322b8e62097f2de55e
+  languageName: node
+  linkType: hard
+
 "@supabase/auth-js@npm:2.68.0":
   version: 2.68.0
   resolution: "@supabase/auth-js@npm:2.68.0"
@@ -1759,6 +1798,13 @@ __metadata:
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
+  languageName: node
+  linkType: hard
+
+"core-js-pure@npm:^3.30.2":
+  version: 3.41.0
+  resolution: "core-js-pure@npm:3.41.0"
+  checksum: 10c0/d5003e91f167dd5670174d27bf313407325d0915454f41337510b89ba420f1d0d1b22d3b1793eb329b28e9273e951fb895eb574ecfc1ccc77ed6ad14af1c763b
   languageName: node
   linkType: hard
 
@@ -2746,6 +2792,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-equals@npm:5.0.1":
+  version: 5.0.1
+  resolution: "fast-equals@npm:5.0.1"
+  checksum: 10c0/d7077b8b681036c2840ed9860a3048e44fc268fad2b525b8f25b43458be0c8ad976152eb4b475de9617170423c5b802121ebb61ed6641c3ac035fadaf805c8c0
+  languageName: node
+  linkType: hard
+
 "fast-glob@npm:3.3.1":
   version: 3.3.1
   resolution: "fast-glob@npm:3.3.1"
@@ -2852,6 +2905,15 @@ __metadata:
     flatted: "npm:^3.2.9"
     keyv: "npm:^4.5.4"
   checksum: 10c0/2c59d93e9faa2523e4fda6b4ada749bed432cfa28c8e251f33b25795e426a1c6dbada777afb1f74fcfff33934fdbdea921ee738fcc33e71adc9d6eca984a1cfc
+  languageName: node
+  linkType: hard
+
+"flat@npm:6.0.1":
+  version: 6.0.1
+  resolution: "flat@npm:6.0.1"
+  bin:
+    flat: cli.js
+  checksum: 10c0/9dc0dbe6e2acc012512a53130d9ba1c82c1a596cdca91b23d11716348361c4a68928409bb4433c4493a17595c3efd0cab9f09e23dd3f9962a58af225c3efc23a
   languageName: node
   linkType: hard
 
@@ -3840,6 +3902,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-what@npm:^4.1.8":
+  version: 4.1.16
+  resolution: "is-what@npm:4.1.16"
+  checksum: 10c0/611f1947776826dcf85b57cfb7bd3b3ea6f4b94a9c2f551d4a53f653cf0cb9d1e6518846648256d46ee6c91d114b6d09d2ac8a07306f7430c5900f87466aae5b
+  languageName: node
+  linkType: hard
+
 "is-wsl@npm:^2.2.0":
   version: 2.2.0
   resolution: "is-wsl@npm:2.2.0"
@@ -4082,6 +4151,7 @@ __metadata:
     "@mantine/notifications": "npm:^7.17.1"
     "@ngneat/falso": "npm:^7.3.0"
     "@prisma/client": "npm:6.4.1"
+    "@supabase-cache-helpers/postgrest-react-query": "npm:^1.11.5"
     "@supabase/ssr": "npm:^0.5.2"
     "@supabase/supabase-js": "npm:^2.49.1"
     "@tabler/icons-react": "npm:^3.30.0"
@@ -4103,7 +4173,7 @@ __metadata:
     postcss-simple-vars: "npm:^7.0.1"
     postgres: "npm:^3.4.5"
     prisma: "npm:^6.4.1"
-    react: "npm:19.0.0"
+    react: "npm:^19.0.0"
     react-dom: "npm:19.0.0"
     tsx: "npm:^4.19.3"
     typescript: "npm:5.7.3"
@@ -4115,6 +4185,15 @@ __metadata:
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
   checksum: 10c0/7579ff94e899e2f76ab64491d76cf606274c874d8f2af4a442c016bd85688927fcfca157ba6bf74b08e9439dc010b248ce05b96cc7c126a354c3bae7fcb48b7f
+  languageName: node
+  linkType: hard
+
+"merge-anything@npm:5.1.7":
+  version: 5.1.7
+  resolution: "merge-anything@npm:5.1.7"
+  dependencies:
+    is-what: "npm:^4.1.8"
+  checksum: 10c0/1820c8dfa5da65de1829b5e9adb65d1685ec4bc5d358927cacd20a9917eff9448f383f937695f4dbd2162b152faf41ce24187a931621839ee8a8b3c306a65136
   languageName: node
   linkType: hard
 
@@ -4986,7 +5065,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.0.0":
+"react@npm:^19.0.0":
   version: 19.0.0
   resolution: "react@npm:19.0.0"
   checksum: 10c0/9cad8f103e8e3a16d15cb18a0d8115d8bd9f9e1ce3420310aea381eb42aa0a4f812cf047bb5441349257a05fba8a291515691e3cb51267279b2d2c3253f38471
@@ -6407,6 +6486,15 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/e498965d6938c63058c4310ffb6967f07d4fa06789d3364829028af380d299fe05762961742971c764973dce3d1f6a2633fe8b2d9410c9b52e534b4b882a99fa
+  languageName: node
+  linkType: hard
+
+"xregexp@npm:5.1.1":
+  version: 5.1.1
+  resolution: "xregexp@npm:5.1.1"
+  dependencies:
+    "@babel/runtime-corejs3": "npm:^7.16.5"
+  checksum: 10c0/ae007c7898afd808e7664931228dc4bd38e65ebc24c66318416a038b4351cc73cc9b3b9cea1ab5ffd97933bf9b75afbf848f36e91d22b2416d6bd7d6fcfd2ee6
   languageName: node
   linkType: hard
 

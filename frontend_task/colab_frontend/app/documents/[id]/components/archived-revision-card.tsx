@@ -1,14 +1,12 @@
 import { Paper, Stack, Group, Avatar, Box, Text } from "@mantine/core";
-import ActivityTime from "@/components/activity-time/activity-time";
-import { getInitialsFromEmail } from "@/utils/utils";
+import { getInitialsFromEmail, getUsernameFromEmail } from "@/utils/utils";
 import { Revision, RevisionStatus } from "@prisma/client";
+import { GetDocumentRevisionsResponse } from "@/queries/get-document-revisions";
+import { TimeAgo } from "../../components/timeago";
+import { InferArrayElement } from "@/types";
 
 interface ArchivedRevisionCardProps {
-  revision: Revision & {
-    author: {
-      email: string;
-    };
-  };
+  revision: InferArrayElement<GetDocumentRevisionsResponse>;
 }
 
 export const ArchivedRevisionCard: React.FC<ArchivedRevisionCardProps> = ({
@@ -33,8 +31,11 @@ export const ArchivedRevisionCard: React.FC<ArchivedRevisionCardProps> = ({
               {getInitialsFromEmail(revision.author.email)}
             </Avatar>
             <Box>
-              <Text size="sm">{revision.author.email}</Text>
-              <ActivityTime date={revision.updatedAt} />
+              <Text size="sm">
+                {" "}
+                {getUsernameFromEmail(revision.author.email)}
+              </Text>
+              <TimeAgo size="xs" c="dimmed" date={revision.updatedAt} />
             </Box>
           </Group>
         </Group>

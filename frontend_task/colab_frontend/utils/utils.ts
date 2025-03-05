@@ -1,3 +1,4 @@
+import { GetOrganizationActivityResponse } from "@/queries/get-organization-activity";
 import { DocumentActivity } from "@prisma/client";
 import { redirect } from "next/navigation";
 
@@ -20,22 +21,22 @@ export function getInitialsFromEmail(email: string) {
   return email.split("@")[0].substring(0, 2).toUpperCase();
 }
 
+export function getUsernameFromEmail(email: string) {
+  return email.split("@")[0];
+}
+
 export function getDocumentActivityDescription(
-  documentActivity: DocumentActivity & {
-    actor: {
-      email: string;
-    };
-    document: {
-      title: string;
-    };
-  }
+  // @ts-expect-error @TODO: fix this
+  activity: GetOrganizationActivityResponse[number]
 ) {
-  switch (documentActivity.actionType) {
+  const actorUsername = getUsernameFromEmail(activity.actor.email);
+
+  switch (activity.actionType) {
     case "CREATED":
-      return `${documentActivity.actor.email} created a new document`;
+      return `${actorUsername} created a new document`;
     case "UPDATED":
-      return `${documentActivity.actor.email} updated the document`;
+      return `${actorUsername} updated the document`;
     case "DELETED":
-      return `${documentActivity.actor.email} deleted the document`;
+      return `${actorUsername} deleted the document`;
   }
 }

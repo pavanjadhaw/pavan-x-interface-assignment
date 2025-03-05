@@ -6,15 +6,25 @@ import {
   mantineHtmlProps,
 } from "@mantine/core";
 import { theme } from "../theme";
-import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
+import getQueryClient from "@/utils/get-query-client";
+import { fetchServerUser } from "@/hooks/use-server-user";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { userProfileQueryKey } from "@/queries/get-profile";
+import { Notifications } from "@mantine/notifications";
+import "@mantine/notifications/styles.css";
 
 export const metadata = {
   title: "Interface",
   description: "The industrial world's autonomous safety expert",
 };
 
-export default function RootLayout({ children }: { children: any }) {
+export default async function RootLayout({ children }: { children: any }) {
+  const queryClient = getQueryClient();
+  const userProfile = await fetchServerUser();
+
+  queryClient.setQueryData(userProfileQueryKey, userProfile);
+
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
@@ -26,9 +36,13 @@ export default function RootLayout({ children }: { children: any }) {
         />
       </head>
       <body>
-        <NextTopLoader color="var(--mantine-color-grape-4)" />
         <MantineProvider theme={theme}>
-          <Providers>{children}</Providers>
+          <Notifications containerWidth={320} />
+          <Providers>
+            <HydrationBoundary state={dehydrate(queryClient)}>
+              {children}
+            </HydrationBoundary>
+          </Providers>
         </MantineProvider>
       </body>
     </html>

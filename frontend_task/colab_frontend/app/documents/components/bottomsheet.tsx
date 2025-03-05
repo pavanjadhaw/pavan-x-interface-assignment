@@ -17,6 +17,14 @@ export const BottomSheet = ({
 
   return (
     <>
+      <Box
+        style={{
+          width: "100%",
+          height: "60px",
+        }}
+        hiddenFrom="sm"
+      ></Box>
+
       {!drawerOpened && (
         <Box
           hiddenFrom="sm"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Drawer,
   TextInput,
@@ -12,20 +12,38 @@ import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { IconCheck } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys, DocumentWithAuthor } from "@/app/hooks/useQueries";
 import { useDisclosure } from "@mantine/hooks";
-import { createDocument } from "@/app/documents/documents.actions";
 import { v4 as uuidv4 } from "uuid";
-import { Profile } from "@/hooks/use-user";
+import { useInsertMutation } from "@supabase-cache-helpers/postgrest-react-query";
+import { useSupabaseClient } from "@/utils/supabase/client";
+import { getUser } from "@/hooks/use-user";
+import { TablesInsert } from "@/utils/supabase/types";
+import { DocumentActionType } from "@prisma/client";
+import { useCreateActivity } from "@/mutations/useCreateActivity";
 
-interface NewDocumentDrawerProps {
-  profile: Profile;
-}
-
-export function NewDocumentDrawer({ profile }: NewDocumentDrawerProps) {
+export function NewDocumentDrawer() {
+  const { data: user } = getUser();
   const [opened, { open, close }] = useDisclosure(false);
-  const [loading, setLoading] = useState(false);
-  const queryClient = useQueryClient();
+  const supabase = useSupabaseClient();
+
+  const { mutateAsync: createActivity } = useCreateActivity(supabase);
+  const { mutateAsync: createDocument } = useInsertMutation(
+    supabase.from("Document"),
+    ["id"],
+    `
+      id,
+      title,
+      content,
+      createdAt,
+      updatedAt,
+      author:Profile (
+        id,
+        email
+      ),
+      revisionsCount:Revision (
+        count
+      )`
+  );
 
   const form = useForm({
     initialValues: {
@@ -39,83 +57,6 @@ export function NewDocumentDrawer({ profile }: NewDocumentDrawerProps) {
         val.length <= 6 ? "Content should include at least 6 characters" : null,
     },
   });
-
-  const createDocumentMutation = useMutation({
-    mutationFn: async (values: { title: string; content: string }) => {
-      const documentId = uuidv4();
-      await createDocument({
-        id: documentId,
-        title: values.title,
-        content: values.content,
-      });
-
-      return {
-        document: {
-          id: documentId,
-          title: values.title,
-          content: values.content,
-          updatedAt: new Date(),
-        },
-      };
-    },
-    onSuccess: (data) => {
-      // Create a new document object with the author information
-      const newDocument: DocumentWithAuthor = {
-        ...data.document,
-        author: {
-          email: profile.email || "",
-        },
-        _count: {
-          revisions: 0,
-        },
-      };
-
-      // Update the query cache
-      queryClient.setQueriesData(
-        { queryKey: [queryKeys.documents, profile.organizationId] },
-        (oldData: any) => {
-          if (!oldData) return oldData;
-
-          // Handle both regular and infinite queries
-          if (oldData.documents) {
-            return {
-              ...oldData,
-              documents: [newDocument, ...oldData.documents],
-            };
-          }
-
-          return oldData;
-        }
-      );
-
-      // Show success notification
-      notifications.show({
-        title: "Document created",
-        message: `${data.document.title} has been created successfully`,
-        color: "green",
-        icon: <IconCheck size="1.1rem" />,
-      });
-
-      // Close the drawer and reset the form
-      close();
-      form.reset();
-    },
-    onError: (error: Error) => {
-      notifications.show({
-        title: "Error",
-        message: error.message,
-        color: "red",
-      });
-    },
-    onSettled: () => {
-      setLoading(false);
-    },
-  });
-
-  const handleSubmit = async (values: { title: string; content: string }) => {
-    setLoading(true);
-    createDocumentMutation.mutate(values);
-  };
 
   return (
     <>
@@ -132,10 +73,52 @@ export function NewDocumentDrawer({ profile }: NewDocumentDrawerProps) {
         position="right"
         size="md"
       >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        <form
+          onSubmit={form.onSubmit(async (values) => {
+            if (!user?.profile) {
+              console.error("you are not signed in");
+              return;
+            }
+
+            const id = uuidv4();
+            const authorId = user.profile.id;
+            const organizationId = user.profile.organization.id;
+
+            const newDocument: TablesInsert<"Document"> = {
+              id,
+              authorId,
+              organizationId,
+              title: values.title,
+              content: values.content,
+              updatedAt: new Date().toISOString(),
+            };
+
+            const newDocumentActivity: TablesInsert<"DocumentActivity"> = {
+              id: uuidv4(),
+              actionType: DocumentActionType.CREATED,
+              createdAt: new Date().toISOString(),
+              actorId: authorId,
+              documentId: id,
+              organizationId,
+            };
+
+            await createDocument([newDocument]);
+            await createActivity([newDocumentActivity]);
+
+            notifications.show({
+              title: newDocument.title,
+              message: `has been created successfully`,
+              color: "green",
+              icon: <IconCheck size="1.1rem" />,
+            });
+
+            close();
+            form.reset();
+          })}
+        >
           <Stack>
             <TextInput
-              label="Document Title"
+              label="Title"
               placeholder="Enter document title"
               required
               radius="md"
@@ -152,10 +135,6 @@ export function NewDocumentDrawer({ profile }: NewDocumentDrawerProps) {
               {...form.getInputProps("content")}
             />
 
-            <Text size="sm" c="dimmed">
-              This will create a new document in your organization.
-            </Text>
-
             <Group justify="flex-end" mt="md">
               <Button
                 variant="outline"
@@ -163,13 +142,11 @@ export function NewDocumentDrawer({ profile }: NewDocumentDrawerProps) {
                   close();
                   form.reset();
                 }}
-                disabled={loading}
+                // disabled={loading}
               >
                 Cancel
               </Button>
-              <Button type="submit" loading={loading}>
-                Create Document
-              </Button>
+              <Button type="submit">Create</Button>
             </Group>
           </Stack>
         </form>

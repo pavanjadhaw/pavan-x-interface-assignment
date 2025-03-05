@@ -1,83 +1,28 @@
-import { prisma } from "@/utils/prisma/client";
-import getUser from "@/utils/supabase/get-user";
-import DocumentPage from "./document";
-import {
-  HydrationBoundary,
-  QueryClient,
-  dehydrate,
-} from "@tanstack/react-query";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { DocumentsPage } from "../documents-page";
+import page from "../page";
+import getQueryClient from "@/utils/get-query-client";
+import DocumentPage from "./document-page";
+import { prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getDocument } from "@/queries/get-document";
+import { getSupabaseServerClient } from "@/utils/supabase/server";
+
+interface DocumentPageContainerProps {
+  params: Promise<{ id: string }>;
+}
 
 export default async function DocumentPageContainer({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: DocumentPageContainerProps) {
   const { id } = await params;
-  const { profile } = await getUser();
+  const queryClient = getQueryClient();
+  const supabase = await getSupabaseServerClient();
 
-  // Create a new QueryClient instance for server-side rendering
-  const queryClient = new QueryClient();
-
-  // Fetch the document data
-  const document = await prisma.document.findUnique({
-    where: {
-      id,
-      organizationId: profile!.organizationId,
-    },
-    include: {
-      activities: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          actor: true,
-        },
-      },
-      revisions: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              email: true,
-            },
-          },
-          activities: {
-            include: {
-              actor: {
-                select: {
-                  id: true,
-                  email: true,
-                },
-              },
-            },
-            orderBy: {
-              createdAt: "desc",
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!document) {
-    return <div>Document not found</div>;
-  }
-
-  // Prefetch and cache the document data
-  await queryClient.prefetchQuery({
-    queryKey: ["documents", id],
-    queryFn: () => document,
-  });
-
-  // Dehydrate the cache to pass it to the client
-  const dehydratedState = dehydrate(queryClient);
+  await prefetchQuery(queryClient, getDocument(supabase, { id }));
 
   return (
-    <HydrationBoundary state={dehydratedState}>
-      <DocumentPage initialDocument={document} />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DocumentPage />
     </HydrationBoundary>
   );
 }

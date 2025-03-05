@@ -1,3 +1,8 @@
+import { getUser } from "@/hooks/use-user";
+import { useCreateActivity } from "@/mutations/useCreateActivity";
+import { GetDocumentResponse } from "@/queries/get-document";
+import { TablesInsert } from "@/supabase/types";
+import { useSupabaseClient } from "@/utils/supabase/client";
 import {
   ActionIcon,
   Button,
@@ -10,23 +15,42 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { Document, DocumentActivity, Revision } from "@prisma/client";
+import { notifications } from "@mantine/notifications";
+import { DocumentActionType } from "@prisma/client";
+import { useUpdateMutation } from "@supabase-cache-helpers/postgrest-react-query";
+import { use } from "react";
 import { IconEdit } from "@tabler/icons-react";
-import { updateDocument } from "../../documents.actions";
-import { useQueryClient } from "@tanstack/react-query";
+import { v4 as uuidv4 } from "uuid";
+import { U } from "@faker-js/faker/dist/airline-BXaRegOM";
+import { TablesUpdate } from "@/utils/supabase/types";
 
 interface EditDocumentDrawerProps {
-  document: Document;
-}
-
-interface FormValues {
-  title: string;
-  content: string;
+  document: NonNullable<GetDocumentResponse>;
 }
 
 export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
   const [opened, { open, close }] = useDisclosure(false);
-  const queryClient = useQueryClient();
+  const { data: user } = getUser();
+  const supabase = useSupabaseClient();
+
+  const { mutateAsync: createActivity } = useCreateActivity(supabase);
+  const { mutateAsync: updateDocument } = useUpdateMutation(
+    supabase.from("Document"),
+    ["id"],
+    `
+      id,
+      title,
+      content,
+      createdAt,
+      updatedAt,
+      author:Profile (
+        id,
+        email
+      ),
+      revisionsCount:Revision (
+        count
+      )`
+  );
 
   const form = useForm({
     initialValues: {
@@ -41,92 +65,6 @@ export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
         val.length <= 6 ? "Content should include at least 6 characters" : null,
     },
   });
-
-  const handleSubmit = async (values: FormValues) => {
-    close();
-    form.reset();
-
-    // Store the current document data for potential rollback
-    const currentDocument = queryClient.getQueryData([
-      "documents",
-      document.id,
-    ]) as any;
-
-    // Create an updated document with the new values
-    const updatedDocument = {
-      ...currentDocument,
-      title: values.title,
-      content: values.content,
-      updatedAt: new Date(),
-    };
-
-    // Optimistically update the document in the cache
-    queryClient.setQueryData(["documents", document.id], updatedDocument);
-
-    // Also update the document in the documents list if it exists
-    queryClient.setQueriesData({ queryKey: ["documents"] }, (oldData: any) => {
-      if (!oldData || !oldData.documents) return oldData;
-
-      return {
-        ...oldData,
-        documents: oldData.documents.map((doc: any) =>
-          doc.id === document.id
-            ? {
-                ...doc,
-                title: values.title,
-                content: values.content,
-                updatedAt: new Date(),
-              }
-            : doc
-        ),
-      };
-    });
-
-    try {
-      await updateDocument({
-        id: document.id,
-        title: values.title,
-        content: values.content,
-      });
-
-      // No need to invalidate queries since we've already updated the cache
-      // and real-time subscriptions will handle any server-side changes
-    } catch (error) {
-      console.error("Failed to update document:", error);
-
-      // Revert the optimistic updates on error
-      if (currentDocument) {
-        queryClient.setQueryData(["documents", document.id], currentDocument);
-      }
-
-      // Revert the document in the documents list
-      queryClient.setQueriesData(
-        { queryKey: ["documents"] },
-        (oldData: any) => {
-          if (!oldData || !oldData.documents) return oldData;
-
-          return {
-            ...oldData,
-            documents: oldData.documents.map((doc: any) =>
-              doc.id === document.id
-                ? {
-                    ...doc,
-                    title: document.title,
-                    content: document.content,
-                    updatedAt: document.updatedAt,
-                  }
-                : doc
-            ),
-          };
-        }
-      );
-
-      // Invalidate queries to refetch the latest data
-      queryClient.invalidateQueries({
-        queryKey: ["documents", document.id],
-      });
-    }
-  };
 
   return (
     <>
@@ -145,13 +83,47 @@ export const EditDocumentDrawer = ({ document }: EditDocumentDrawerProps) => {
         radius="md"
       >
         <form
-          onSubmit={form.onSubmit((values) => {
+          onSubmit={form.onSubmit(async (values) => {
+            if (!user?.profile) {
+              console.error("not signed in");
+              return;
+            }
+
             if (
               values.title !== document.title ||
               values.content !== document.content
             ) {
-              handleSubmit(values);
+              const documentId = document.id;
+              const authorId = user.profile.id;
+              const organizationId = user.profile.organization.id;
+
+              const updatedDocument: TablesUpdate<"Document"> = {
+                id: documentId,
+                title: values.title,
+                content: values.content,
+              };
+
+              const updatedDocumentActivity: TablesInsert<"DocumentActivity"> =
+                {
+                  id: uuidv4(),
+                  documentId,
+                  organizationId,
+                  actionType: DocumentActionType.UPDATED,
+                  createdAt: new Date().toISOString(),
+                  actorId: authorId,
+                };
+
+              await updateDocument(updatedDocument);
+              await createActivity([updatedDocumentActivity]);
+
+              notifications.show({
+                title: "Document updated",
+                message: "Document updated successfully",
+                color: "green",
+              });
             }
+
+            close();
           })}
         >
           <Stack>

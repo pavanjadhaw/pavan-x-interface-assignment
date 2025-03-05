@@ -1,27 +1,43 @@
-import { ActionIcon, Drawer, Tooltip } from "@mantine/core";
+import { ActionIcon, Drawer, Indicator, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconHistory } from "@tabler/icons-react";
+import { RevisionHistoryTabs } from "./revision-history-tabs";
 
 interface RevisionHistoryDrawerProps {
   children: React.ReactNode;
+  showIndicator?: boolean;
+  onToggle?: () => void;
 }
 
 export const RevisionHistoryDrawer = ({
   children,
+  showIndicator = false,
+  onToggle,
 }: RevisionHistoryDrawerProps) => {
   const [opened, { open, close }] = useDisclosure(false);
 
   return (
     <>
       <Tooltip label="Revision & Activity Log">
-        <ActionIcon
-          variant="default"
-          aria-label="History"
-          onClick={open}
-          visibleFrom="sm"
+        <Indicator
+          inline
+          size={12}
+          withBorder
+          processing
+          disabled={!showIndicator}
         >
-          <IconHistory style={{ width: "70%", height: "70%" }} stroke={1.5} />
-        </ActionIcon>
+          <ActionIcon
+            variant="default"
+            aria-label="History"
+            onClick={() => {
+              onToggle?.();
+              open();
+            }}
+            visibleFrom="sm"
+          >
+            <IconHistory style={{ width: "70%", height: "70%" }} stroke={1.5} />
+          </ActionIcon>
+        </Indicator>
       </Tooltip>
       <Drawer
         opened={opened}
@@ -30,7 +46,7 @@ export const RevisionHistoryDrawer = ({
         position="right"
         offset={8}
         radius="md"
-        size="xs"
+        size="sm"
       >
         {children}
       </Drawer>

@@ -23,8 +23,9 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { theme } from "@/theme";
-import ProfileDropdown from "@/components/profile-dropdown/profile-dropdown";
+// import ProfileDropdown from "@/components/profile-dropdown/profile-dropdown";
 import Link from "next/link";
+import ProfileDropdown from "./components/profile-dropdown";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
@@ -72,7 +73,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             fontWeight: "bold",
           }}
         />
-
         <ProfileDropdown />
       </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>

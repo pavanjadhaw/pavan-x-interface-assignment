@@ -1,4 +1,4 @@
-import { BottomSheet } from "@/components/bottomsheet/bottomsheet";
+import { BottomSheet } from "../../components/bottomsheet";
 
 interface RevisionHistoryBottomSheetProps {
   children: React.ReactNode;

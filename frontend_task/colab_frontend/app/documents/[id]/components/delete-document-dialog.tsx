@@ -13,53 +13,59 @@ import { useForm } from "@mantine/form";
 import { v4 as uuidv4 } from "uuid";
 import {
   Document,
+  DocumentActionType,
   DocumentActivity,
   Profile,
   Revision,
   RevisionStatus,
 } from "@prisma/client";
-import { deleteDocument } from "../../documents.actions";
 import { IconTrash } from "@tabler/icons-react";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  useDeleteMutation,
+  useUpdateMutation,
+} from "@supabase-cache-helpers/postgrest-react-query";
+import { useSupabaseClient } from "@/utils/supabase/client";
+import { TablesInsert, TablesUpdate } from "@/utils/supabase/types";
+import { getUser } from "@/hooks/use-user";
+import { useCreateActivity } from "@/mutations/useCreateActivity";
 
 interface DeleteDocumentDialogProps {
-  document: Document & {
-    revisions: (Revision & {
-      author: {
-        id: string;
-        email: string;
-      };
-    })[];
-  };
+  documentId: string;
 }
 
 export const DeleteDocumentDialog = ({
-  document,
+  documentId,
 }: DeleteDocumentDialogProps) => {
-  const queryClient = useQueryClient();
+  const { data: user } = getUser();
+  const supabase = useSupabaseClient();
   const router = useRouter();
   const isMobile = useMediaQuery(`(max-width: 48em)`);
   const [opened, { open, close }] = useDisclosure(false);
 
-  const handleDelete = async () => {
-    close();
-
-    try {
-      await deleteDocument({ id: document.id });
-
-      // Remove the document from the cache
-      queryClient.removeQueries({
-        queryKey: ["documents", document.id],
-      });
-
-      // Navigate back to documents list
-      router.push("/documents");
-    } catch (error) {
-      console.error("Failed to delete document:", error);
+  const { mutateAsync: createActivity } = useCreateActivity(supabase);
+  const { mutateAsync: updateDocument } = useUpdateMutation(
+    supabase.from("Document"),
+    ["id"],
+    `
+      id,
+      title,
+      content,
+      createdAt,
+      updatedAt,
+      author:Profile (
+        id,
+        email
+      ),
+      revisionsCount:Revision (
+        count
+      )`,
+    {
+      disableAutoQuery: true,
     }
-  };
+  );
 
   return (
     <>
@@ -96,7 +102,32 @@ export const DeleteDocumentDialog = ({
             Are you sure you want to delete <br /> this document?
           </Text>
           <Button
-            onClick={handleDelete}
+            onClick={async () => {
+              if (!user?.profile) {
+                console.error("not signed in");
+                return;
+              }
+
+              const updatedDocument: TablesUpdate<"Document"> = {
+                id: documentId,
+                deletedAt: new Date().toISOString(),
+              };
+
+              const updatedDocumentActivity: TablesInsert<"DocumentActivity"> =
+                {
+                  id: uuidv4(),
+                  documentId,
+                  organizationId: user.profile.organization.id,
+                  actionType: DocumentActionType.UPDATED,
+                  createdAt: new Date().toISOString(),
+                  actorId: user.profile.id,
+                };
+
+              await updateDocument(updatedDocument);
+              await createActivity([updatedDocumentActivity]);
+
+              router.push("/documents");
+            }}
             size="xs"
             style={{
               backgroundColor: "var(--mantine-color-red-6)",

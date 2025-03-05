@@ -1,4 +1,4 @@
-import { BottomSheet } from "@/components/bottomsheet/bottomsheet";
+import { BottomSheet } from "./bottomsheet";
 
 interface TimelineBottomSheetProps {
   children: React.ReactNode;

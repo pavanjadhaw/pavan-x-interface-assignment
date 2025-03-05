@@ -1,60 +1,64 @@
-import getUser from "@/utils/supabase/get-user";
-import DocumentsPage from "./documents";
-import { fetchDocuments, fetchDocumentActivities } from "../utils/queries";
-import { DocumentsPageProps } from "./documents";
+import { getDocuments } from "@/queries/get-documents";
+import { getSupabaseServerClient } from "@/utils/supabase/server";
+import { prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import {
-  DocumentWithAuthor,
-  DocumentActivityWithRelations,
-} from "../hooks/useQueries";
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { DocumentsPage } from "./documents-page";
+import getQueryClient from "@/utils/get-query-client";
+import { fetchServerUser, getServerUser } from "@/hooks/use-server-user";
+import { getUser } from "@/hooks/use-user";
+import { userProfileQueryKey } from "@/queries/get-profile";
+import { getDocumentsCount } from "@/queries/get-documents-count";
+import { getOrganizationActivity } from "@/queries/get-organization-activity";
 
-// Enable revalidation every 30 seconds
-export const revalidate = 30;
+type DocumentsPageContainerProps = {
+  searchParams: Promise<{ page?: string; pageSize?: string }>;
+};
 
 export default async function DocumentsPageContainer({
   searchParams,
-}: {
-  searchParams: Promise<{ cursor?: string; limit?: string }>;
-}) {
-  const start = Date.now();
+}: DocumentsPageContainerProps) {
+  const params = await searchParams;
+  const page = typeof params.page === "string" ? parseInt(params.page) : 1;
+  const pageSize =
+    typeof params.pageSize === "string" ? parseInt(params.pageSize) : 10;
 
-  // Get user profile first
-  const { profile } = await getUser();
+  const queryClient = getQueryClient();
+  const supabase = await getSupabaseServerClient();
 
-  if (!profile?.organizationId) {
-    return (
-      <DocumentsPage
-        initialDocuments={[]}
-        initialDocumentActivities={[]}
-        initialNextCursor={null}
-      />
-    );
+  const { profile } = await getServerUser();
+
+  if (profile?.organization.id) {
+    await Promise.all([
+      prefetchQuery(
+        queryClient,
+        getDocuments(supabase, {
+          organizationId: profile.organization.id,
+          page,
+          pageSize,
+        })
+      ),
+      prefetchQuery(
+        queryClient,
+        getDocumentsCount(supabase, {
+          organizationId: profile.organization.id,
+        })
+      ),
+      prefetchQuery(
+        queryClient,
+        getOrganizationActivity(supabase, {
+          organizationId: profile.organization.id,
+        })
+      ),
+    ]);
   }
 
-  // Properly await searchParams before accessing its properties
-  const params = await searchParams;
-  const limit = params?.limit ? parseInt(params.limit, 10) : 10;
-
-  // Then fetch documents and activities in parallel
-  const [documentsResult, documentActivities] = await Promise.all([
-    fetchDocuments({ organizationId: profile.organizationId, limit }),
-    fetchDocumentActivities({ organizationId: profile.organizationId }),
-  ]);
-
-  const end = Date.now();
-  console.log(`Documents page data fetching took ${end - start}ms`);
-
-  // The documents from our query already have the correct structure
-  // but TypeScript doesn't know that, so we use a safe type assertion
-  const documents =
-    documentsResult.documents as unknown as DocumentWithAuthor[];
-  const activities =
-    documentActivities as unknown as DocumentActivityWithRelations[];
-
   return (
-    <DocumentsPage
-      initialDocuments={documents}
-      initialDocumentActivities={activities}
-      initialNextCursor={documentsResult.nextCursor}
-    />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DocumentsPage initialPage={page} initialPageSize={pageSize} />
+    </HydrationBoundary>
   );
 }

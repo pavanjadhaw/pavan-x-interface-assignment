@@ -17,24 +17,52 @@ import {
   Revision,
   RevisionStatus,
 } from "@prisma/client";
-import { createRevision } from "../../documents.actions";
 import { Dispatch, SetStateAction } from "react";
 import { IconMessageCircle } from "@tabler/icons-react";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSupabaseClient } from "@/utils/supabase/client";
+import { useInsertMutation } from "@supabase-cache-helpers/postgrest-react-query";
+import { TablesInsert } from "@/supabase/types";
+import { GetDocumentResponse } from "@/queries/get-document";
+import { getUser } from "@/hooks/use-user";
+import { notifications } from "@mantine/notifications";
 
 export interface NewRevisionDialogProps {
-  profile: Profile;
-  document: Document;
+  document: GetDocumentResponse;
 }
 
-export function NewRevisionDialog({
-  profile,
-  document,
-}: NewRevisionDialogProps) {
+export function NewRevisionDialog({ document }: NewRevisionDialogProps) {
+  const { data: user } = getUser();
   const isMobile = useMediaQuery(`(max-width: 48em)`);
   const [opened, { open, close }] = useDisclosure(false);
   const queryClient = useQueryClient();
+  const supabase = useSupabaseClient();
+
+  const { mutateAsync } = useInsertMutation(
+    supabase.from("Revision"),
+    ["id"],
+    `
+      id,
+      content,
+      status,
+      createdAt,
+      updatedAt,
+      author:Profile (
+        id,
+        email
+      ),
+      activities:RevisionActivity (
+        id,
+        actionType,
+        createdAt,
+        actor:Profile (
+          id,
+          email
+        )
+      )
+      `
+  );
 
   const form = useForm({
     initialValues: {
@@ -47,65 +75,6 @@ export function NewRevisionDialog({
           : null,
     },
   });
-
-  const handleSubmit = async (values: { content: string }) => {
-    const id = uuidv4();
-    close();
-    form.reset();
-
-    // Create the optimistic revision
-    const optimisticRevision = {
-      id,
-      documentId: document.id,
-      content: values.content,
-      status: RevisionStatus.PENDING,
-      authorId: profile.id,
-      author: {
-        id: profile.id,
-        email: profile.email,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      activities: [],
-    };
-
-    // Get the current document data from the cache
-    const currentDocument = queryClient.getQueryData([
-      "documents",
-      document.id,
-    ]) as any;
-
-    // Optimistically update the document in the cache
-    if (currentDocument) {
-      queryClient.setQueryData(["documents", document.id], {
-        ...currentDocument,
-        revisions: [optimisticRevision, ...(currentDocument.revisions || [])],
-      });
-    }
-
-    try {
-      await createRevision({
-        id,
-        documentId: document.id,
-        content: values.content,
-      });
-
-      // No need to invalidate the query since we've already updated the cache
-      // and the real-time subscription will handle any server-side changes
-    } catch (error) {
-      console.error("Failed to create revision:", error);
-
-      // Revert the optimistic update on error
-      if (currentDocument) {
-        queryClient.setQueryData(["documents", document.id], currentDocument);
-      }
-
-      // Invalidate the query to refetch the latest data
-      queryClient.invalidateQueries({
-        queryKey: ["documents", document.id],
-      });
-    }
-  };
 
   return (
     <>
@@ -136,7 +105,35 @@ export function NewRevisionDialog({
         radius="md"
         {...(!isMobile && { position: { top: 120, right: 20 } })}
       >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        <form
+          onSubmit={form.onSubmit(async (values) => {
+            if (!user?.profile || !document) {
+              console.error("you are not signed in");
+              return;
+            }
+
+            const newRevision: TablesInsert<"Revision"> = {
+              id: uuidv4(),
+              content: values.content,
+              status: "PENDING",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              authorId: user.profile.id,
+              documentId: document.id,
+            };
+
+            await mutateAsync([newRevision]);
+
+            notifications.show({
+              title: "Revision created",
+              message: "Revision created successfully",
+              color: "green",
+            });
+
+            close();
+            form.reset();
+          })}
+        >
           <Text size="sm" mb="xs" fw={500}>
             Add revision
           </Text>

@@ -1,25 +1,5 @@
-import { useForm } from "@mantine/form";
-import {
-  Stack,
-  TextInput,
-  Textarea,
-  Button,
-  Flex,
-  Drawer,
-  ActionIcon,
-} from "@mantine/core";
-import { v4 as uuidv4 } from "uuid";
-import {
-  Document,
-  DocumentActivity,
-  DocumentActionType,
-  Profile,
-} from "@prisma/client";
-import { createDocument } from "../documents.actions";
+import { ActionIcon, Drawer } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useState } from "react";
-import { DocumentPageProps } from "../[id]/document";
-import { DocumentsPageProps } from "../documents";
 import { IconHistory } from "@tabler/icons-react";
 
 interface TimelineDrawerProps {
@@ -41,7 +21,6 @@ export const TimelineDrawer = ({ children }: TimelineDrawerProps) => {
         position="right"
         offset={8}
         radius="md"
-        size="xs"
       >
         {children}
       </Drawer>
