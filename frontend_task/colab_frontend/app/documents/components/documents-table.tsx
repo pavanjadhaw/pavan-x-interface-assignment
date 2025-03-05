@@ -44,8 +44,22 @@ export const DocumentsTable = ({
           <Table.Tr>
             <Table.Th>Title</Table.Th>
             <Table.Th>Revisions</Table.Th>
-            <Table.Th visibleFrom="md">Author</Table.Th>
-            <Table.Th visibleFrom="md">Last updated</Table.Th>
+            <Table.Th
+              visibleFrom="md"
+              style={{
+                textAlign: "right",
+              }}
+            >
+              Author
+            </Table.Th>
+            <Table.Th
+              visibleFrom="md"
+              style={{
+                textAlign: "right",
+              }}
+            >
+              Last updated
+            </Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
