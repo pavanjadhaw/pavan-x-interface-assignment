@@ -41,20 +41,13 @@ The application follows a modular architecture with clear separation of concerns
    cd regulation-task
    ```
 
-2. Create a virtual environment:
+2. Install packages and setup env
 
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   uv sync
    ```
 
-3. Install dependencies:
-
-   ```bash
-   pip install -e .
-   ```
-
-4. Create a `.env` file with your Claude API key:
+3. Create a `.env` file with your Claude API key:
    ```
    CLAUDE_API_KEY=your_api_key_here
    ```
@@ -64,7 +57,7 @@ The application follows a modular architecture with clear separation of concerns
 ### Running the API server
 
 ```bash
-python -m app.main
+./run.py
 ```
 
 The API will be available at http://localhost:8000
@@ -72,7 +65,7 @@ The API will be available at http://localhost:8000
 ### Running the CLI
 
 ```bash
-python -m app.main --cli
+./run.py --cli
 ```
 
 ### API Endpoints
