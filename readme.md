@@ -203,9 +203,7 @@ cd regulation_task
 2. Create a virtual environment and install dependencies using uv:
 
 ```bash
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip install -e .
+uv sync
 ```
 
 3. Set up environment variables:
@@ -221,13 +219,13 @@ CLAUDE_API_KEY=your_api_key_here
 For the API server:
 
 ```bash
-python run.py
+./run.py
 ```
 
 For the CLI mode:
 
 ```bash
-python run.py --cli
+./run.py --cli
 ```
 
 The API server will be available at http://localhost:8000/docs and webui will be available at http://localhost:8000/
