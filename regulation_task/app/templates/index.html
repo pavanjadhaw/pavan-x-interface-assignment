@@ -318,7 +318,12 @@
           <div class="document-section">
             <h3>SOP Documents</h3>
             <form id="sopForm" enctype="multipart/form-data">
-              <input type="file" name="file" accept=".pdf,.docx,.doc" />
+              <input
+                type="file"
+                name="files"
+                accept=".pdf,.docx,.doc"
+                multiple
+              />
               <input type="submit" value="Upload SOP" />
             </form>
             <div id="sopList" class="document-list">Loading...</div>
@@ -327,7 +332,12 @@
           <div class="document-section">
             <h3>Regulatory Documents</h3>
             <form id="regForm" enctype="multipart/form-data">
-              <input type="file" name="file" accept=".pdf,.docx,.doc" />
+              <input
+                type="file"
+                name="files"
+                accept=".pdf,.docx,.doc"
+                multiple
+              />
               <input type="submit" value="Upload Regulatory Document" />
             </form>
             <div id="regList" class="document-list">Loading...</div>
@@ -442,7 +452,7 @@
             }
 
             let html =
-              '<table><tr class="header-row"><th>Filename</th><th>Size</th><th>Last Modified</th><th>Action</th></tr>';
+              '<table><tr class="header-row"><th>Filename</th><th>Size</th><th>Last Modified</th><th>Actions</th></tr>';
             data.forEach((file) => {
               const date = new Date(file.last_modified * 1000).toLocaleString();
               const size = Math.round(file.size / 1024) + " KB";
@@ -450,7 +460,10 @@
                             <td>${file.filename}</td>
                             <td>${size}</td>
                             <td>${date}</td>
-                            <td><button class="analyze-sop-btn">Analyze</button></td>
+                            <td>
+                              <button class="analyze-sop-btn">Analyze</button>
+                              <button class="delete-sop-btn danger">Delete</button>
+                            </td>
                         </tr>`;
             });
             html += "</table>";
@@ -462,6 +475,22 @@
                 e.stopPropagation(); // Prevent row click event
                 const row = this.closest("tr");
                 analyzeSopDocument(row);
+              });
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll(".delete-sop-btn").forEach((btn) => {
+              btn.addEventListener("click", function (e) {
+                e.stopPropagation(); // Prevent row click event
+                const row = this.closest("tr");
+                const filename = row.getAttribute("data-filename");
+                if (
+                  confirm(
+                    `Are you sure you want to delete "${filename}"? This will also delete all related reports and data.`
+                  )
+                ) {
+                  deleteSopDocument(filename);
+                }
               });
             });
           })
@@ -482,14 +511,37 @@
             }
 
             let html =
-              '<table><tr class="header-row"><th>Filename</th><th>Size</th><th>Last Modified</th></tr>';
+              '<table><tr class="header-row"><th>Filename</th><th>Size</th><th>Last Modified</th><th>Actions</th></tr>';
             data.forEach((file) => {
               const date = new Date(file.last_modified * 1000).toLocaleString();
               const size = Math.round(file.size / 1024) + " KB";
-              html += `<tr data-path="${file.path}"><td>${file.filename}</td><td>${size}</td><td>${date}</td></tr>`;
+              html += `<tr data-path="${file.path}" data-filename="${file.filename}">
+                            <td>${file.filename}</td>
+                            <td>${size}</td>
+                            <td>${date}</td>
+                            <td>
+                              <button class="delete-reg-btn danger">Delete</button>
+                            </td>
+                        </tr>`;
             });
             html += "</table>";
             regList.innerHTML = html;
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll(".delete-reg-btn").forEach((btn) => {
+              btn.addEventListener("click", function (e) {
+                e.stopPropagation(); // Prevent row click event
+                const row = this.closest("tr");
+                const filename = row.getAttribute("data-filename");
+                if (
+                  confirm(
+                    `Are you sure you want to delete "${filename}"? This will also delete all related data.`
+                  )
+                ) {
+                  deleteRegulatoryDocument(filename);
+                }
+              });
+            });
           })
           .catch((error) => {
             console.error("Error loading regulatory files:", error);
@@ -670,7 +722,10 @@
                             <td>${report.status}</td>
                             <td class="${scoreClass}">${score}</td>
                             <td>${date}</td>
-                            <td><button onclick="viewReport('${report.job_id}')">View</button></td>
+                            <td>
+                              <button onclick="viewReport('${report.job_id}')">View</button>
+                              <button class="danger" onclick="deleteReport('${report.job_id}')">Delete</button>
+                            </td>
                         </tr>`;
             });
             html += "</table>";
@@ -846,6 +901,14 @@
         .getElementById("sopForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
+
+          // Validate that files are selected
+          const fileInput = this.querySelector('input[type="file"]');
+          if (fileInput.files.length === 0) {
+            showToast("Please select at least one file to upload", true);
+            return;
+          }
+
           const formData = new FormData(this);
 
           // Show loading indicator
@@ -853,7 +916,7 @@
           document.getElementById("processing-message").textContent =
             "Uploading SOP document...";
 
-          fetch("/api/upload/sop", {
+          fetch("/api/files/upload/sop", {
             method: "POST",
             body: formData,
           })
@@ -864,9 +927,28 @@
               return response.json();
             })
             .then((data) => {
-              showToast(`SOP document uploaded: ${data.filename}`);
+              // Handle multiple file responses
+              if (Array.isArray(data)) {
+                // Process multiple file responses
+                data.forEach((fileResponse) => {
+                  let message = fileResponse.message
+                    ? fileResponse.message
+                    : `${fileResponse.filename} has been uploaded successfully`;
+                  showToast(message);
+                });
+              } else {
+                // Handle single file response (backward compatibility)
+                let message = data.message
+                  ? data.message
+                  : `${data.filename} has been uploaded successfully`;
+                showToast(message);
+              }
+
               loadDocuments();
               showSection("main");
+
+              // Clear the file input
+              this.reset();
             })
             .catch((error) => {
               console.error("Error uploading SOP:", error);
@@ -880,6 +962,14 @@
         .getElementById("regForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
+
+          // Validate that files are selected
+          const fileInput = this.querySelector('input[type="file"]');
+          if (fileInput.files.length === 0) {
+            showToast("Please select at least one file to upload", true);
+            return;
+          }
+
           const formData = new FormData(this);
 
           // Show loading indicator
@@ -887,7 +977,7 @@
           document.getElementById("processing-message").textContent =
             "Uploading regulatory document...";
 
-          fetch("/api/upload/regulatory", {
+          fetch("/api/files/upload/regulatory", {
             method: "POST",
             body: formData,
           })
@@ -898,9 +988,28 @@
               return response.json();
             })
             .then((data) => {
-              showToast(`Regulatory document uploaded: ${data.filename}`);
+              // Handle multiple file responses
+              if (Array.isArray(data)) {
+                // Process multiple file responses
+                data.forEach((fileResponse) => {
+                  let message = fileResponse.message
+                    ? fileResponse.message
+                    : `${fileResponse.filename} has been uploaded successfully`;
+                  showToast(message);
+                });
+              } else {
+                // Handle single file response (backward compatibility)
+                let message = data.message
+                  ? data.message
+                  : `${data.filename} has been uploaded successfully`;
+                showToast(message);
+              }
+
               loadDocuments();
               showSection("main");
+
+              // Clear the file input
+              this.reset();
             })
             .catch((error) => {
               console.error("Error uploading regulatory document:", error);
@@ -925,6 +1034,113 @@
       document
         .getElementById("reportSort")
         .addEventListener("change", loadReports);
+
+      // Delete SOP document
+      function deleteSopDocument(filename) {
+        // Show loading indicator
+        showSection("loading");
+        document.getElementById("processing-message").textContent =
+          "Deleting SOP document...";
+
+        fetch(`/api/files/sop/${encodeURIComponent(filename)}`, {
+          method: "DELETE",
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Delete failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            showToast(data.message);
+            loadDocuments();
+            loadReports(); // Reload reports as some may have been deleted
+            showSection("main");
+          })
+          .catch((error) => {
+            console.error("Error deleting SOP document:", error);
+            showToast("Error deleting SOP document", true);
+            showSection("main");
+          });
+      }
+
+      // Delete regulatory document
+      function deleteRegulatoryDocument(filename) {
+        // Show loading indicator
+        showSection("loading");
+        document.getElementById("processing-message").textContent =
+          "Deleting regulatory document...";
+
+        fetch(`/api/files/regulatory/${encodeURIComponent(filename)}`, {
+          method: "DELETE",
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Delete failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            showToast(data.message);
+
+            // If the message indicates background cleanup, show a more informative toast
+            if (
+              data.message.includes(
+                "vector database cleanup has been scheduled"
+              )
+            ) {
+              setTimeout(() => {
+                showToast(
+                  "Vector database cleanup is running in the background. This may take a few moments to complete."
+                );
+              }, 3500); // Show after the first toast disappears
+            }
+
+            loadDocuments();
+            showSection("main");
+          })
+          .catch((error) => {
+            console.error("Error deleting regulatory document:", error);
+            showToast("Error deleting regulatory document", true);
+            showSection("main");
+          });
+      }
+
+      // Delete report
+      function deleteReport(jobId) {
+        if (
+          !confirm(
+            `Are you sure you want to delete report "${jobId}"? This action cannot be undone.`
+          )
+        ) {
+          return;
+        }
+
+        // Show loading indicator
+        showSection("loading");
+        document.getElementById("processing-message").textContent =
+          "Deleting report...";
+
+        fetch(`/api/reports/${jobId}`, {
+          method: "DELETE",
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Delete failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            showToast(data.message);
+            loadReports(); // Reload reports as some may have been deleted
+            showSection("main");
+          })
+          .catch((error) => {
+            console.error("Error deleting report:", error);
+            showToast("Error deleting report", true);
+            showSection("main");
+          });
+      }
 
       // Initial load
       loadDocuments();

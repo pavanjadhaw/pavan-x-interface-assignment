@@ -3,6 +3,7 @@ import json
 from typing import List
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.schemas.reports import ReportSummary
@@ -56,4 +57,40 @@ async def get_report(job_id: str):
         
         return report_data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{job_id}")
+async def delete_report(job_id: str):
+    """Delete a specific analysis report and its status file."""
+    report_path = settings.REPORTS_DIR / f"{job_id}.json"
+    status_path = settings.REPORTS_DIR / f"{job_id}_status.json"
+    
+    if not os.path.exists(report_path) and not os.path.exists(status_path):
+        raise HTTPException(status_code=404, detail=f"Report not found: {job_id}")
+    
+    try:
+        # Delete report file if it exists
+        if os.path.exists(report_path):
+            os.remove(report_path)
+        
+        # Delete status file if it exists
+        if os.path.exists(status_path):
+            os.remove(status_path)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "job_id": job_id,
+                "success": True,
+                "message": f"Report '{job_id}' has been deleted"
+            }
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "job_id": job_id,
+                "success": False,
+                "message": f"Error deleting report: {str(e)}"
+            }
+        ) 

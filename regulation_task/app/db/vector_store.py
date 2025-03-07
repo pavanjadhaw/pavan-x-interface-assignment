@@ -122,4 +122,40 @@ def find_relevant_clauses(sop_chunks: List[str], db: Chroma, top_k: int = 5) -> 
             seen_clauses.add(clause_text)
             unique_clauses.append(clause_info)
     
-    return unique_clauses 
+    return unique_clauses
+
+
+def remove_document_from_db(doc_id: str, db: Chroma) -> bool:
+    """Remove a document and all its clauses from the vector database.
+    
+    Args:
+        doc_id: The document ID to remove
+        db: The Chroma database instance
+        
+    Returns:
+        bool: True if the document was found and removed, False otherwise
+    """
+    try:
+        # Check if document is indexed
+        if not is_document_indexed(doc_id):
+            print(f"Document {doc_id} not found in index, nothing to remove")
+            return False
+            
+        # Remove from Chroma DB
+        db.delete(where={"doc_id": doc_id})
+        
+        # Remove from indexed documents
+        indexed_docs = get_indexed_documents()
+        if doc_id in indexed_docs:
+            indexed_docs.remove(doc_id)
+            
+            # Save updated indexed documents
+            index_path = get_indexed_documents_path()
+            with open(index_path, "w", encoding="utf-8") as f:
+                json.dump(list(indexed_docs), f)
+                
+        print(f"Successfully removed document {doc_id} from vector database")
+        return True
+    except Exception as e:
+        print(f"Error removing document {doc_id} from vector database: {e}")
+        return False 
