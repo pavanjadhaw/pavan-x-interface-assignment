@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     PROCESSED_DIR: Path = DATA_DIR / "processed"
     REPORTS_DIR: Path = DATA_DIR / "reports"
     CHROMA_PERSIST_DIR: Path = DATA_DIR / "chroma_db"
+    STATIC_DIR: Path = BASE_DIR / "app" / "static"
     
     # Default paths
     DEFAULT_SOP_PATH: Path = SOP_DIR / "original.docx"
@@ -61,4 +62,5 @@ os.makedirs(settings.REGULATORY_DOCS_DIR, exist_ok=True)
 os.makedirs(settings.PROCESSED_DIR, exist_ok=True)
 os.makedirs(settings.REPORTS_DIR, exist_ok=True)
 os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
-os.makedirs(BASE_DIR / "app" / "templates", exist_ok=True) 
+os.makedirs(BASE_DIR / "app" / "templates", exist_ok=True)
+os.makedirs(settings.STATIC_DIR, exist_ok=True) 
