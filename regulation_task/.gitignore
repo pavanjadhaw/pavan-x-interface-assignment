@@ -32,3 +32,4 @@ archive.zip
 data/chroma_db/*
 data/processed/*
 data/reports/*
+.env
